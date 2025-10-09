@@ -1,0 +1,110 @@
+{{- define "serving.componentDeployment" -}}
+{{- $name := index . 0 -}}
+{{- $cfg  := index . 1 -}}
+{{- $ctx    := index . 2 -}}
+
+{{- $mountEnabled := default false $cfg.mount.enabled -}}
+{{- $claimName := $ctx.Values.pvc.claimName -}}
+{{- $mountName := default $ctx.Values.pvc.claimName $cfg.mount.name -}}
+{{- $mountPath := default $ctx.Values.pvc.defaultPath $cfg.mount.path -}}
+
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "fullname" $ctx }}-{{ $name }}
+  labels:
+    {{- include "labels" (list $ctx $name) | nindent 4 }}
+spec:
+  replicas: {{ $cfg.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "selectorLabels" (list $ctx $name) | nindent 6 }}
+  strategy:
+    rollingUpdate:
+      maxSurge: 25%
+      maxUnavailable: 25%
+  template:
+    metadata:
+      labels:
+        {{- include "selectorLabels" (list $ctx $name) | nindent 8 }}
+    spec:
+      securityContext:
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      {{- $tols := default (list) $cfg.tolerations }}
+      {{- if $tols }}
+      tolerations:
+{{ toYaml $tols | indent 8 }}
+      {{- end }}
+      containers:
+        - name: {{ $name }}
+          image: {{ $cfg.image.repository }}:{{ $cfg.image.tag }}
+          imagePullPolicy: {{ (default "IfNotPresent" $cfg.image.pullPolicy) }}
+          ports:
+            - name: http
+              containerPort: {{ $cfg.port }}
+          {{- if $cfg.resources }}
+          resources:
+{{ toYaml $cfg.resources | indent 12 }}
+          {{- end }}
+          {{- if $cfg.startupProbe }}
+          startupProbe:
+            httpGet:
+              path: {{ (default "/healthz" $cfg.startupProbe.path) }}
+              port: http
+            initialDelaySeconds: {{ $cfg.startupProbe.initialDelaySeconds }}
+            periodSeconds: {{ $cfg.startupProbe.periodSeconds }}
+            timeoutSeconds: {{ (default 2 $cfg.startupProbe.timeoutSeconds) }}
+            failureThreshold: {{ (default 3 $cfg.startupProbe.failureThreshold) }}
+          {{- end }}
+          {{- if $cfg.readinessProbe }}
+          readinessProbe:
+            httpGet:
+              path: {{ (default "/ready" $cfg.readinessProbe.path) }}
+              port: http
+            initialDelaySeconds: {{ $cfg.readinessProbe.initialDelaySeconds }}
+            periodSeconds: {{ $cfg.readinessProbe.periodSeconds }}
+            timeoutSeconds: {{ (default 2 $cfg.readinessProbe.timeoutSeconds) }}
+            failureThreshold: {{ (default 3 $cfg.readinessProbe.failureThreshold) }}
+          {{- end }}
+          {{- if $cfg.livenessProbe }}
+          livenessProbe:
+            httpGet:
+              path: {{ (default "/healthz" $cfg.livenessProbe.path) }}
+              port: http
+            initialDelaySeconds: {{ $cfg.livenessProbe.initialDelaySeconds }}
+            periodSeconds: {{ $cfg.livenessProbe.periodSeconds }}
+            timeoutSeconds: {{ (default 2 $cfg.livenessProbe.timeoutSeconds) }}
+            failureThreshold: {{ (default 5 $cfg.livenessProbe.failureThreshold) }}
+          {{- end }}
+          envFrom:
+            - configMapRef:
+                name: {{ include "fullname" $ctx }}-{{ $name }}
+          volumeMounts:
+            - name: tmp
+              mountPath: /tmp
+          {{- if $mountEnabled }}
+            - name: {{ $mountName }}
+              mountPath: {{ $mountPath }}
+          {{- end }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities: { drop: ["ALL"] }
+      volumes:
+        - name: tmp
+          emptyDir: {}
+        {{- if $mountEnabled }}
+        - name: {{ $mountName }}
+          persistentVolumeClaim:
+            claimName: {{ $claimName }}
+        {{- end }}
+{{- end -}}
+
+{{ include "serving.componentDeployment" (list "gateway"     .Values.gateway     .) }}
+{{ include "serving.componentDeployment" (list "transformer" .Values.transformer .) }}
+{{ include "serving.componentDeployment" (list "predictor"   .Values.predictor   .) }}

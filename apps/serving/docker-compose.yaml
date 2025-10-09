@@ -1,0 +1,45 @@
+services:
+
+  gateway:
+    image: gateway
+    build:
+      context: ../..
+      dockerfile: apps/serving/gateway/Dockerfile
+    depends_on:
+      - transformer
+      - predictor
+    networks: [serving-net]
+    ports:
+      - "8080:8080"
+    volumes:
+      - ../..:/app:ro
+    environment:
+      - TRANSFORMER_HOST=transformer
+      - PREDICTOR_HOST=predictor
+
+  transformer:
+    image: transformer
+    build:
+      context: ../..
+      dockerfile: apps/serving/transformer/Dockerfile
+    networks: [serving-net]
+    ports:
+      - "5001:5001"
+    volumes:
+      - ../..:/app:ro
+    environment:
+      - PREDICTOR_HOST=predictor
+
+  predictor:
+    image: predictor
+    build:
+      context: ../..
+      dockerfile: apps/serving/predictor/Dockerfile
+    networks: [serving-net]
+    ports:
+      - "5002:5002"
+    volumes:
+      - ../..:/app:ro
+
+networks:
+  serving-net:

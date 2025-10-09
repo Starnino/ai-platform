@@ -1,0 +1,35 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "fullname" . }}-gateway
+data:
+  PORT: "{{ .Values.gateway.port }}"
+  TIMEOUT: "{{ .Values.gateway.timeout }}"
+  TRANSFORMER_HOST: {{ include "fullname" . }}-transformer
+  TRANSFORMER_PORT: "{{ .Values.transformer.port }}"
+  PREDICTOR_HOST: {{ include "fullname" . }}-predictor
+  PREDICTOR_PORT: "{{ .Values.predictor.port }}"
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "fullname" . }}-transformer
+data:
+  PORT: "{{ .Values.transformer.port }}"
+  TIMEOUT: "{{ .Values.transformer.timeout }}"
+  PREDICTOR_HOST: {{ include "fullname" . }}-predictor
+  PREDICTOR_PORT: "{{ .Values.predictor.port }}"
+  DATA_DIR: "{{ .Values.pvc.defaultPath }}"
+
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "fullname" . }}-predictor
+data:
+  PORT: "{{ .Values.predictor.port }}"
+  TIMEOUT: "{{ .Values.predictor.timeout }}"
+  DATA_DIR: "{{ .Values.pvc.defaultPath }}"

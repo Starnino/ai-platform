@@ -1,0 +1,58 @@
+- name: ExampleModel
+  src: src.models.example
+  framework: sklearn
+  version: latest
+  parameters:
+    n_estimators: 400
+    random_state: 42
+  transformer: ExampleTransformer       
+  schema:
+    input:
+      - name: air_temperature
+        type: float
+        description: Air temperature measurement
+      - name: relative_humidity
+        type: float
+        description: Relative humidity measurement
+      - name: air_pressure
+        type: float
+        description: Air pressure measurement
+      - name: wind_speed
+        type: float
+        description: Wind speed measurement
+      - name: rainfall
+        type: float
+        description: Rainfall measurement
+      - name: direct_radiation
+        type: float
+        description: Direct solar radiation
+      - name: global_radiation
+        type: float
+        description: Global solar radiation
+      - name: day
+        type: int
+        description: Day of month
+      - name: month
+        type: int
+        description: Month of year
+      - name: holiday
+        type: int
+        description: Holiday indicator (0/1)
+      - name: floor_id
+        type: int
+        description: Building floor number
+      - name: area_id
+        type: int
+        description: Building area identifier
+      - name: indoor_temperature
+        type: float
+        description: Internal air temperature measurement
+      - name: indoor_humidity
+        type: float
+        description: Internal Relative humidity measurement
+        
+    output:
+      - name: power_consumption
+        type: float
+        description: Simulated active power consumption
+        shape: [1]

@@ -1,0 +1,39 @@
+{{- if .Values.pvc.enabled }}
+
+{{- if and (eq (default "" .Values.pvc.storageClassName) "standard") .Values.pvc.hostPath }}
+apiVersion: v1
+kind: PersistentVolume
+metadata:
+  name: {{ .Values.pvc.claimName }}-pv
+spec:
+  capacity:
+    storage: {{ .Values.pvc.size }}
+  accessModes:
+    - ReadWriteOnce
+  persistentVolumeReclaimPolicy: Delete
+  hostPath:
+    path: {{ .Values.pvc.hostPath | quote }}
+---
+{{- end }}
+
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ .Values.pvc.claimName }}
+spec:
+  {{- if and (eq (default "" .Values.pvc.storageClassName) "standard") .Values.pvc.hostPath }}
+  storageClassName: ""
+  volumeName: {{ .Values.pvc.claimName }}-pv
+  accessModes:
+    - ReadWriteOnce
+  {{- else }}
+  {{- if .Values.pvc.storageClassName }}
+  storageClassName: {{ .Values.pvc.storageClassName }}
+  {{- end }}
+  accessModes:
+    - {{ if or (eq .Values.pvc.storageClassName "efs-sc") (hasPrefix "efs" .Values.pvc.storageClassName) }}ReadWriteMany{{ else }}ReadWriteOnce{{ end }}
+  {{- end }}
+  resources:
+    requests:
+      storage: {{ .Values.pvc.size }}
+{{- end }}

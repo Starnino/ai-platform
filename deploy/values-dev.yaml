@@ -1,0 +1,29 @@
+serving:
+  debug: false
+  pvc:
+    storageClassName: local-path
+    size: 5Gi
+    claimName: data
+    hostPath: /data
+  gateway:
+    image:
+      repository: harbor.technopole-demo.it/ai/serving/gateway
+      pullPolicy: Always
+      tag: 0.1
+  transformer:
+    image:
+      repository: harbor.technopole-demo.it/ai/serving/transformer
+      pullPolicy: Always
+      tag: 0.1
+  predictor:
+    image:
+      repository: harbor.technopole-demo.it/ai/serving/predictor
+      pullPolicy: Always
+      tag: 0.1
+  ingress:
+    enabled: true
+    className: nginx
+    host: ai.technopole-demo.it
+    path: /
+    tls:
+      enabled: false

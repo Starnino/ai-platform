@@ -1,0 +1,101 @@
+# Application Configuration
+debug: true
+
+# Persistent Volume Configuration
+pvc:
+  enabled: true
+  storageClassName: standard
+  size: 100Mi
+  hostPath: /data
+  defaultPath: /app/data
+  claimName: data
+
+# Deployment Configuration
+gateway:
+  timeout: 60
+  replicaCount: 1
+  image: 
+    repository: gateway
+    tag: latest
+    pullPolicy: IfNotPresent
+  port: 8080
+  serviceType: ClusterIP
+  autoscaling:
+    enabled: false
+  mount:
+    enabled: false
+  resources:
+    requests: { cpu: "500m", memory: "512Mi" }
+    limits:   { cpu: "1", memory: "2Gi" }
+  startupProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 2
+    failureThreshold: 30
+  readinessProbe:
+    initialDelaySeconds: 5
+    periodSeconds: 5
+  livenessProbe:
+    initialDelaySeconds: 5
+    periodSeconds: 5
+
+transformer:
+  timeout: 50
+  protocol: v1
+  replicaCount: 1
+  image: 
+    repository: transformer
+    tag: latest
+    pullPolicy: IfNotPresent
+  port: 5001
+  serviceType: ClusterIP
+  autoscaling:
+    enabled: false
+  mount:
+    enabled: true
+  resources:
+    requests: { cpu: "1", memory: "1Gi" }
+    limits:   { cpu: "2",    memory: "4Gi" }
+  startupProbe:
+    initialDelaySeconds: 20
+    periodSeconds: 10
+  readinessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 10
+  livenessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 10
+
+predictor:
+  timeout: 40
+  protocol: v1
+  replicaCount: 1
+  image: 
+    repository: predictor
+    tag: latest
+    pullPolicy: IfNotPresent
+  port: 5002
+  serviceType: ClusterIP
+  autoscaling:
+    enabled: false
+  mount:
+    enabled: true
+  resources:
+    requests: { cpu: "1", memory: "2Gi" }
+    limits:   { cpu: "3", memory: "6Gi" }
+  startupProbe:
+    initialDelaySeconds: 30
+    periodSeconds: 10
+  readinessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 10
+  livenessProbe:
+    initialDelaySeconds: 10
+    periodSeconds: 10
+
+# Ingress Configuration
+ingress:
+  enabled: true
+  className: nginx
+  path: /
+  tls:
+    enabled: false 

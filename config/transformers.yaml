@@ -1,0 +1,13 @@
+- name: ExampleTransformer
+  preprocessors:
+    - name: Dict2Array
+      src: src.core.transformers.standard
+    - name: StandardScaler
+      src: src.core.transformers.standard
+      parameters:
+        file_path: data/transformers/ExampleTransformer/x_scaler.pkl
+  postprocessors:
+    - name: StandardScaler
+      src: src.core.transformers.standard
+      parameters:
+        file_path: data/transformers/ExampleTransformer/y_scaler.pkl

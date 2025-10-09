@@ -1,0 +1,28 @@
+{{- define "serving.componentService" -}}
+{{- $name := index . 0 -}}
+{{- $cfg  := index . 1 -}}
+{{- $root := index . 2 | default $ -}}
+
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "fullname" $root }}-{{ $name }}
+  labels:
+    {{- include "labels" (list $root $name) | nindent 4 }}
+spec:
+  type: {{ default "ClusterIP" $cfg.serviceType }}
+  selector:
+    {{- include "selectorLabels" (list $root $name) | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ $cfg.port }}
+      targetPort: http
+      {{- if and (eq $cfg.serviceType "NodePort") $cfg.nodePort }}
+      nodePort: {{ $cfg.nodePort }}
+      {{- end }}
+{{- end -}}
+
+{{ include "serving.componentService"    (list "gateway"     .Values.gateway     .) }}
+{{ include "serving.componentService"    (list "transformer" .Values.transformer .) }}
+{{ include "serving.componentService"    (list "predictor"   .Values.predictor   .) }}

@@ -1,0 +1,5 @@
+apiVersion: v2
+name: serving
+description: Chart AI Model Serving
+version: 0.1
+appVersion: "1.0"

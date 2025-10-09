@@ -1,0 +1,10 @@
+apiVersion: v2
+name: umbrella
+description: Application Umbrella Chart
+type: application
+version: 0.1
+dependencies:
+  - name: serving
+    version: 0.1
+    repository: "file://./charts/serving"
+    alias: serving

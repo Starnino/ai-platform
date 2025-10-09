@@ -1,0 +1,5 @@
+fastapi[standard]
+pydantic
+pyYAML
+dotenv
+prometheus-client

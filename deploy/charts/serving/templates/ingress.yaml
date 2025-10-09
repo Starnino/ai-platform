@@ -1,0 +1,44 @@
+{{- if .Values.ingress.enabled }}
+{{- $component := "gateway" }}
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "fullname" . }}-{{ $component }}
+  labels:
+    {{- include "labels" (list $ $component) | nindent 4 }}
+spec:
+  {{- if .Values.ingress.tls.enabled }}
+  tls:
+    - {{- if .Values.ingress.host }}
+      hosts:
+        - {{ .Values.ingress.host }}
+      {{- end }}
+      secretName: {{ .Values.ingress.tls.secretName }}
+  {{- end }}
+  {{- if .Values.ingress.className }}
+  ingressClassName: {{ .Values.ingress.className }}
+  {{- end }}
+  rules:
+  {{- if .Values.ingress.host }}
+    - host: {{ .Values.ingress.host }}
+      http:
+        paths:
+          - path: {{ .Values.ingress.path | default "/" }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "fullname" . }}-{{ $component }}
+                port:
+                  number: {{ (index .Values $component).port }}
+  {{- else }}
+    - http:
+        paths:
+          - path: {{ .Values.ingress.path | default "/" }}
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "fullname" . }}-{{ $component }}
+                port:
+                  number: {{ (index .Values $component).port }}
+  {{- end }}
+{{- end }}
