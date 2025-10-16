@@ -28,6 +28,7 @@ class BaseSettings:
             raise RuntimeError(f"PROJECT_DIR does not exist: {PROJECT_DIR}")
         self.CONFIG_DIR = Path(os.getenv("CONFIG_DIR", PROJECT_DIR / "config"))
         self.DATA_DIR = Path(os.getenv("DATA_DIR", PROJECT_DIR / "data"))
+        self.DEBUG = self.get('DEBUG', False).lower() in ('true', '1', 'yes')
     
     def get(self, key: str, default=None, cast: type | None = None):
         """
